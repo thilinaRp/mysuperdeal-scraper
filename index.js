@@ -55,10 +55,9 @@ app.get("/getposts/:pageId", async (req, res) => {
     // wait for first post to view
 
     await page
-      .waitForSelector(
-        "#pages_msite_body_contents > div > div:nth-child(4) > div:nth-child(2)",
-        { timeout: 0 }
-      )
+      .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]', {
+        timeout: 0,
+      })
       .then(() => {
         console.log("post loaded");
       });
