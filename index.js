@@ -18,11 +18,10 @@ app.get("/getposts/:pageId", async (req, res) => {
       "--single-process",
       "--no-zygote",
     ],
-    defaultViewport: null,
     executablePath:
       process.env.NODE_ENV === "production"
         ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : "C:/Users/thilina/.cache/puppeteer/chrome/chrome.exe",
+        : puppeteer.executablePath(),
   });
   try {
     const page = await browser.newPage();
@@ -131,7 +130,7 @@ app.get("/getpostimage/:posturl", async (req, res) => {
     executablePath:
       process.env.NODE_ENV === "production"
         ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : "C:/Users/thilina/.cache/puppeteer/chrome/chrome.exe",
+        : puppeteer.executablePath(),
   });
   try {
     const page = await browser.newPage();
