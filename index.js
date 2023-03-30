@@ -1,5 +1,6 @@
 const express = require("express");
 const puppeteer = require("puppeteer");
+require("dotenv").config();
 const cheerio = require("cheerio");
 
 const app = express();
@@ -11,8 +12,17 @@ app.get("/", async (req, res) => {
 
 app.get("/getposts/:pageId", async (req, res) => {
   const browser = await puppeteer.launch({
+    args: [
+      "--disable-setuid-sandbox",
+      "--no-sandbox",
+      "--single-process",
+      "--no-zygote",
+    ],
     defaultViewport: null,
-    // executablePath: "C:/Users/thilina/.cache/puppeteer/chrome/chrome.exe",
+    executablePath:
+      process.env.NODE_ENV === "production"
+        ? process.env.PUPPETEER_EXECUTABLE_PATH
+        : "C:/Users/thilina/.cache/puppeteer/chrome/chrome.exe",
   });
   try {
     const page = await browser.newPage();
@@ -111,8 +121,17 @@ app.get("/getposts/:pageId", async (req, res) => {
 
 app.get("/getpostimage/:posturl", async (req, res) => {
   const browser = await puppeteer.launch({
+    args: [
+      "--disable-setuid-sandbox",
+      "--no-sandbox",
+      "--single-process",
+      "--no-zygote",
+    ],
     defaultViewport: null,
-    // executablePath: "C:/Users/thilina/.cache/puppeteer/chrome/chrome.exe",
+    executablePath:
+      process.env.NODE_ENV === "production"
+        ? process.env.PUPPETEER_EXECUTABLE_PATH
+        : "C:/Users/thilina/.cache/puppeteer/chrome/chrome.exe",
   });
   try {
     const page = await browser.newPage();
