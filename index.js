@@ -5,6 +5,10 @@ const cheerio = require("cheerio");
 const app = express();
 const port = 8080;
 
+app.get("/", async (req, res) => {
+  res.send("root working");
+});
+
 app.get("/getposts/:pageId", async (req, res) => {
   const browser = await puppeteer.launch({
     defaultViewport: null,
