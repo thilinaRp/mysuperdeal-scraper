@@ -12,6 +12,7 @@ app.get("/", async (req, res) => {
 
 app.get("/getposts/:pageId", async (req, res) => {
   const browser = await puppeteer.launch({
+    headless: false,
     args: [
       "--disable-setuid-sandbox",
       "--no-sandbox",
@@ -59,13 +60,15 @@ app.get("/getposts/:pageId", async (req, res) => {
       });
     });
     // wait for first post to view
-    // await page
-    //   .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]', {
-    //     timeout: 0,
-    //   })
-    //   .then(() => {
-    //     console.log("post loaded");
-    //   });
+
+    await page
+      .waitForSelector(
+        "#pages_msite_body_contents > div > div:nth-child(4) > div:nth-child(2)",
+        { timeout: 0 }
+      )
+      .then(() => {
+        console.log("post loaded");
+      });
 
     // get posts html list
     const posts = await page.evaluate(() => {
@@ -114,7 +117,7 @@ app.get("/getposts/:pageId", async (req, res) => {
   } catch (e) {
     res.send(`process error ${e}`);
   } finally {
-    await browser.close();
+    // await browser.close();
   }
 });
 
