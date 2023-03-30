@@ -12,7 +12,6 @@ app.get("/", async (req, res) => {
 
 app.get("/getposts/:pageId", async (req, res) => {
   const browser = await puppeteer.launch({
-    headless: false,
     args: [
       "--disable-setuid-sandbox",
       "--no-sandbox",
@@ -117,7 +116,7 @@ app.get("/getposts/:pageId", async (req, res) => {
   } catch (e) {
     res.send(`process error ${e}`);
   } finally {
-    // await browser.close();
+    await browser.close();
   }
 });
 
