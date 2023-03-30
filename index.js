@@ -59,13 +59,13 @@ app.get("/getposts/:pageId", async (req, res) => {
       });
     });
     // wait for first post to view
-    await page
-      .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]', {
-        timeout: 0,
-      })
-      .then(() => {
-        console.log("post loaded");
-      });
+    // await page
+    //   .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]', {
+    //     timeout: 0,
+    //   })
+    //   .then(() => {
+    //     console.log("post loaded");
+    //   });
 
     // get posts html list
     const posts = await page.evaluate(() => {
