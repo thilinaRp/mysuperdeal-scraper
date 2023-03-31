@@ -55,12 +55,10 @@ app.get("/getposts/:pageId", async (req, res) => {
     // wait for first post to view
 
     await page
-      .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]', {
-        timeout: 0,
-      })
-      .then(() => {
-        console.log("post loaded");
-      });
+      .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]')
+      .then(() => console.log("XPath found!"))
+      .catch((error) => console.error("XPath not found:", error))
+      .finally(() => {});
 
     // get posts html list
     const posts = await page.evaluate(() => {
