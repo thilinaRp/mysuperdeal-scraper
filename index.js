@@ -43,6 +43,7 @@ app.get("/getposts/:pageId", async (req, res) => {
         const distance = 100;
         const timer = setInterval(() => {
           const scrollHeight = document.body.scrollHeight;
+          console.log("scrollHeight => ", scrollHeight);
           window.scrollBy(0, distance);
           totalHeight += distance;
           if (totalHeight >= scrollHeight) {
@@ -55,24 +56,37 @@ app.get("/getposts/:pageId", async (req, res) => {
   };
   // scoll page
   await scrollPage(page);
+  await scrollPage(page);
   // wait for first post to view
+  const beforePosts = await page.evaluate(() => {
+    const postList = document.querySelectorAll(
+      '#pages_msite_body_contents > div > div:nth-child(4) > div[style="padding-top:8px"]'
+    );
+    const postlistarray = [];
+    postList.forEach((el) => {
+      postlistarray.push(el.innerHTML);
+    });
 
-  await page
-    .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]')
-    .then(() => console.log("XPath found!"))
-    .catch(async (error) => {
-      console.log("first time fail error msg=> ", error);
-      await scrollPage(page);
-    })
-    .finally(() => {});
+    return postlistarray;
+  });
+  console.log("beforePosts", beforePosts);
 
-  await page
-    .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]')
-    .then(() => console.log("XPath found!"))
-    .catch(async (error) => {
-      console.log("second time fail error msg=> ", error);
-    })
-    .finally(() => {});
+  // await page
+  //   .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]')
+  //   .then(() => console.log("XPath found!"))
+  //   .catch(async (error) => {
+  //     console.log("first time fail error msg=> ", error);
+  //     await scrollPage(page);
+  //   })
+  //   .finally(() => {});
+
+  // await page
+  //   .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]')
+  //   .then(() => console.log("XPath found!"))
+  //   .catch(async (error) => {
+  //     console.log("second time fail error msg=> ", error);
+  //   })
+  //   .finally(() => {});
   // get posts html list
   const posts = await page.evaluate(() => {
     const postList = document.querySelectorAll(
