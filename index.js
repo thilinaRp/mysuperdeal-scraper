@@ -56,20 +56,9 @@ app.get("/getposts/:pageId", async (req, res) => {
   };
   // scoll page
   await scrollPage(page);
-  await scrollPage(page);
-  // wait for first post to view
-  const beforePosts = await page.evaluate(() => {
-    const postList = document.querySelectorAll(
-      '#pages_msite_body_contents > div > div:nth-child(4) > div[style="padding-top:8px"]'
-    );
-    const postlistarray = [];
-    postList.forEach((el) => {
-      postlistarray.push(el.innerHTML);
-    });
 
-    return postlistarray;
-  });
-  console.log("beforePosts", beforePosts);
+  const screenshot = await page.screenshot();
+  // wait for first post to view
 
   // await page
   //   .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]')
@@ -88,48 +77,49 @@ app.get("/getposts/:pageId", async (req, res) => {
   //   })
   //   .finally(() => {});
   // get posts html list
-  const posts = await page.evaluate(() => {
-    const postList = document.querySelectorAll(
-      '#pages_msite_body_contents > div > div:nth-child(4) > div[style="padding-top:8px"]'
-    );
-    const postlistarray = [];
-    postList.forEach((el) => {
-      postlistarray.push(el.innerHTML);
-    });
+  // const posts = await page.evaluate(() => {
+  //   const postList = document.querySelectorAll(
+  //     '#pages_msite_body_contents > div > div:nth-child(4) > div[style="padding-top:8px"]'
+  //   );
+  //   const postlistarray = [];
+  //   postList.forEach((el) => {
+  //     postlistarray.push(el.innerHTML);
+  //   });
 
-    return postlistarray;
-  });
-  const postObjectArray = posts.map((post) => {
-    const $ = cheerio.load(post);
-    const postObject = JSON.parse($("article").attr("data-ft"));
-    const postId = postObject.mf_story_key;
-    const postImgId = postObject.photo_id;
-    const publishDateSecond =
-      postObject.page_insights[`${postObject.page_id}`].post_context
-        .publish_time;
+  //   return postlistarray;
+  // });
+  // const postObjectArray = posts.map((post) => {
+  //   const $ = cheerio.load(post);
+  //   const postObject = JSON.parse($("article").attr("data-ft"));
+  //   const postId = postObject.mf_story_key;
+  //   const postImgId = postObject.photo_id;
+  //   const publishDateSecond =
+  //     postObject.page_insights[`${postObject.page_id}`].post_context
+  //       .publish_time;
 
-    const postDescription = $(".story_body_container > div > div").html();
-    // const desStyleRemove = cheerio.load(postDescription);
-    // desStyleRemove("style").remove();
-    // desStyleRemove("*[style]").removeAttr("style");
-    // desStyleRemove("*[class]").removeAttr("class");
-    // desStyleRemove("span").removeAttr();
-    // const description = desStyleRemove("body").html();
-    const postImageLow = $(".story_body_container div a img").eq(1).attr("src");
-    const postUrl = $(".story_body_container div div a").eq(2).attr("href");
+  //   const postDescription = $(".story_body_container > div > div").html();
+  //   // const desStyleRemove = cheerio.load(postDescription);
+  //   // desStyleRemove("style").remove();
+  //   // desStyleRemove("*[style]").removeAttr("style");
+  //   // desStyleRemove("*[class]").removeAttr("class");
+  //   // desStyleRemove("span").removeAttr();
+  //   // const description = desStyleRemove("body").html();
+  //   const postImageLow = $(".story_body_container div a img").eq(1).attr("src");
+  //   const postUrl = $(".story_body_container div div a").eq(2).attr("href");
 
-    const postDataObject = {
-      postId: postId,
-      imgId: postImgId,
-      publishDate: publishDateSecond,
-      description: postDescription,
-      lowQImgUrl: postImageLow,
-      postUrl: postUrl,
-    };
-    return postDataObject;
-  });
-  res.send(postObjectArray);
-
+  //   const postDataObject = {
+  //     postId: postId,
+  //     imgId: postImgId,
+  //     publishDate: publishDateSecond,
+  //     description: postDescription,
+  //     lowQImgUrl: postImageLow,
+  //     postUrl: postUrl,
+  //   };
+  //   return postDataObject;
+  // });
+  // res.send(postObjectArray);
+  res.set("Content-Type", "image/png");
+  res.send(screenshot);
   await browser.close();
 });
 
