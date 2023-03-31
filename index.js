@@ -36,30 +36,43 @@ app.get("/getposts/:pageId", async (req, res) => {
     timeout: 0,
   });
 
-  // scoll page
-  await page.evaluate(async () => {
-    await new Promise((resolve, reject) => {
-      let totalHeight = 0;
-      const distance = 100;
-      const timer = setInterval(() => {
-        const scrollHeight = document.body.scrollHeight;
-        window.scrollBy(0, distance);
-        totalHeight += distance;
-        if (totalHeight >= scrollHeight) {
-          clearInterval(timer);
-          resolve();
-        }
-      }, 100);
+  const scrollPage = async (page) => {
+    await page.evaluate(async () => {
+      await new Promise((resolve, reject) => {
+        let totalHeight = 0;
+        const distance = 100;
+        const timer = setInterval(() => {
+          const scrollHeight = document.body.scrollHeight;
+          window.scrollBy(0, distance);
+          totalHeight += distance;
+          if (totalHeight >= scrollHeight) {
+            clearInterval(timer);
+            resolve();
+          }
+        }, 100);
+      });
     });
-  });
+  };
+  // scoll page
+  await scrollPage(page);
   // wait for first post to view
 
   await page
     .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]')
     .then(() => console.log("XPath found!"))
-    .catch((error) => console.error("XPath not found:", error))
+    .catch(async (error) => {
+      console.log("first time fail error msg=> ", error);
+      await scrollPage(page);
+    })
     .finally(() => {});
 
+  await page
+    .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]')
+    .then(() => console.log("XPath found!"))
+    .catch(async (error) => {
+      console.log("second time fail error msg=> ", error);
+    })
+    .finally(() => {});
   // get posts html list
   const posts = await page.evaluate(() => {
     const postList = document.querySelectorAll(
