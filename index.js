@@ -37,7 +37,7 @@ app.get("/getposts/:pageId", async (req, res) => {
   );
 
   // set cookies
-  await page.setCookie([
+  await page.setCookie(
     {
       domain: ".facebook.com",
       expirationDate: 1714853120.021206,
@@ -101,8 +101,8 @@ app.get("/getposts/:pageId", async (req, res) => {
       session: false,
       storeId: null,
       value: "1349x635",
-    },
-  ]);
+    }
+  );
 
   await page.goto(`https://m.facebook.com/ ${req.params.pageId}/`, {
     waitUntil: "networkidle2",
