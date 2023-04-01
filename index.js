@@ -36,11 +36,11 @@ app.get("/getposts/:pageId", async (req, res) => {
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36"
   );
 
-  const setCookie = await client.send("Network.setCookie", {
-    name: "mycookie",
-    value: "Hello",
-    domain: "https://example.com",
-  });
+  // const setCookie = await client.send("Network.setCookie", {
+  //   name: "mycookie",
+  //   value: "Hello",
+  //   domain: "https://example.com",
+  // });
   // set cookies
   await page.setCookie(
     {
