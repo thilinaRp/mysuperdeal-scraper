@@ -1,5 +1,6 @@
 const express = require("express");
 const puppeteer = require("puppeteer");
+const useProxy = require("puppeteer-page-proxy");
 require("dotenv").config();
 const cheerio = require("cheerio");
 
@@ -20,6 +21,7 @@ app.get("/getposts/:pageId", async (req, res) => {
 
   const page = await browser.newPage();
   await page.setRequestInterception(true);
+  await useProxy(page, "http://127.0.0.1:80");
   page.on("request", (request) => {
     if (
       // request.resourceType() === "image" ||
