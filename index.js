@@ -7,6 +7,11 @@ const cheerio = require("cheerio");
 const app = express();
 const port = 8080;
 
+PROXY_USERNAME = "scraperapi";
+PROXY_PASSWORD = "bdeb3c65d16073c887b01512b8e64b8d";
+PROXY_SERVER = "proxy-server.scraperapi.com";
+PROXY_SERVER_PORT = "8001";
+
 app.get("/", async (req, res) => {
   res.send("root working");
 });
@@ -14,9 +19,7 @@ app.get("/", async (req, res) => {
 app.get("/getposts/:pageId", async (req, res) => {
   const browser = await puppeteer.launch({
     ignoreHTTPSErrors: true,
-    args: [
-      `--proxy-server=http://${process.env.PROXY_SERVER}:${process.env.PROXY_SERVER_PORT}`,
-    ],
+    args: [`--proxy-server=http://${PROXY_SERVER}:${PROXY_SERVER_PORT}`],
     executablePath:
       process.env.NODE_ENV === "production"
         ? process.env.PUPPETEER_EXECUTABLE_PATH
@@ -25,8 +28,8 @@ app.get("/getposts/:pageId", async (req, res) => {
 
   const page = await browser.newPage();
   await page.authenticate({
-    username: process.env.PROXY_USERNAME,
-    password: process.env.PROXY_PASSWORD,
+    username: PROXY_USERNAME,
+    password: PROXY_PASSWORD,
   });
   await page.setRequestInterception(true);
   page.on("request", (request) => {
