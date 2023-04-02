@@ -1,6 +1,6 @@
 const express = require("express");
 const puppeteer = require("puppeteer");
-const useProxy = require("puppeteer-page-proxy");
+// const useProxy = require("puppeteer-page-proxy");
 require("dotenv").config();
 const cheerio = require("cheerio");
 
@@ -41,84 +41,11 @@ app.get("/getposts/:pageId", async (req, res) => {
     }
   });
 
-  await page.setUserAgent(
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36"
-  );
+  // await page.setUserAgent(
+  //   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36"
+  // );
 
-  // const setCookie = await client.send("Network.setCookie", {
-  //   name: "mycookie",
-  //   value: "Hello",
-  //   domain: "https://example.com",
-  // });
-  // set cookies
-  await page.setCookie(
-    {
-      domain: ".facebook.com",
-      expirationDate: 1714853120.021206,
-      hostOnly: false,
-      httpOnly: true,
-      name: "datr",
-      path: "/",
-      sameSite: "no_restriction",
-      secure: true,
-      session: false,
-      storeId: null,
-      value: "9DwnZLfnUcm4dfntjM_gb41D",
-    },
-    {
-      domain: ".facebook.com",
-      expirationDate: 1688119962.504256,
-      hostOnly: false,
-      httpOnly: true,
-      name: "fr",
-      path: "/",
-      sameSite: "no_restriction",
-      secure: true,
-      session: false,
-      storeId: null,
-      value: "08Q40jJAoAPK9vEGr..BkJzz0.Z9.AAA.0.0.BkKAOd.AWXlk3qPHjw",
-    },
-    {
-      domain: ".facebook.com",
-      hostOnly: false,
-      httpOnly: false,
-      name: "m_pixel_ratio",
-      path: "/",
-      sameSite: "lax",
-      secure: true,
-      session: true,
-      storeId: null,
-      value: "1",
-    },
-    {
-      domain: ".facebook.com",
-      expirationDate: 1714853120.021365,
-      hostOnly: false,
-      httpOnly: true,
-      name: "sb",
-      path: "/",
-      sameSite: "no_restriction",
-      secure: true,
-      session: false,
-      storeId: null,
-      value: "9DwnZFzq7IdYImVQbJ08Z7cU",
-    },
-    {
-      domain: ".facebook.com",
-      expirationDate: 1680948731,
-      hostOnly: false,
-      httpOnly: false,
-      name: "wd",
-      path: "/",
-      sameSite: "lax",
-      secure: true,
-      session: false,
-      storeId: null,
-      value: "1349x635",
-    }
-  );
-
-  await page.goto(`https://m.facebook.com/ ${req.params.pageId}/`, {
+  await page.goto(`https://m.facebook.com/${req.params.pageId}/`, {
     waitUntil: "networkidle2",
     timeout: 0,
   });
