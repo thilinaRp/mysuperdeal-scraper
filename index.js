@@ -7,10 +7,10 @@ const cheerio = require("cheerio");
 const app = express();
 const port = 8080;
 
-PROXY_USERNAME = "scraperapi";
-PROXY_PASSWORD = "bdeb3c65d16073c887b01512b8e64b8d";
-PROXY_SERVER = "proxy-server.scraperapi.com";
-PROXY_SERVER_PORT = "8001";
+PROXY_USERNAME = "wilvfdpr";
+PROXY_PASSWORD = "688cxjbfgyai";
+PROXY_SERVER = "2.56.119.93";
+PROXY_SERVER_PORT = "5074";
 
 app.get("/", async (req, res) => {
   res.send("root working");
