@@ -13,6 +13,10 @@ app.get("/", async (req, res) => {
 
 app.get("/getposts/:pageId", async (req, res) => {
   const browser = await puppeteer.launch({
+    ignoreHTTPSErrors: true,
+    args: [
+      `--proxy-server=http://${process.env.PROXY_SERVER}:${process.env.PROXY_SERVER_PORT}`,
+    ],
     executablePath:
       process.env.NODE_ENV === "production"
         ? process.env.PUPPETEER_EXECUTABLE_PATH
@@ -20,8 +24,11 @@ app.get("/getposts/:pageId", async (req, res) => {
   });
 
   const page = await browser.newPage();
+  await page.authenticate({
+    username: process.env.PROXY_USERNAME,
+    password: process.env.PROXY_PASSWORD,
+  });
   await page.setRequestInterception(true);
-  await useProxy(page, "http://127.0.0.1:80");
   page.on("request", (request) => {
     if (
       // request.resourceType() === "image" ||
