@@ -32,7 +32,7 @@ app.get("/getpagepreview/:pageId", async (req, res) => {
     executablePath:
       process.env.NODE_ENV === "production"
         ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : _executablePath(),
+        : puppeteer.executablePath(),
   };
 
   const browser = await puppeteer.launch(options);
