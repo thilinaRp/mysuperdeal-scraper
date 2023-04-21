@@ -1,8 +1,8 @@
-const express = require("express");
-const puppeteer = require("puppeteer");
+import express from "express";
+import puppeteer from "puppeteer";
 import randUserAgent from "rand-user-agent";
 require("dotenv").config();
-const cheerio = require("cheerio");
+// const cheerio = require("cheerio");
 const agent = randUserAgent("desktop");
 const app = express();
 const port = 8080;
