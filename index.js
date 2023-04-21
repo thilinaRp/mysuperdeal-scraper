@@ -19,106 +19,92 @@ app.get("/getposts/:pageId", async (req, res) => {
   });
 
   const page = await browser.newPage();
+  await page.setRequestInterception(true);
+  page.on("request", (request) => {
+    if (
+      request.resourceType() === "image" ||
+      // request.resourceType() === "stylesheet"
+      request.resourceType() === "font"
+    ) {
+      request.abort();
+    } else {
+      request.continue();
+    }
+  });
+
   await page.goto(`https://facebook.com/${req.params.pagename}`, {
     waitUntil: "networkidle2",
     timeout: 0,
   });
+  // Set network conditions to Slow 3G
+  await page.emulateNetworkConditions(slow3G);
 
-  const scrollPage = async (page) => {
-    await page.evaluate(async () => {
-      await new Promise((resolve, reject) => {
-        let totalHeight = 0;
-        const distance = 500;
-        const timer = setInterval(() => {
-          const scrollHeight = document.body.scrollHeight;
-          window.scrollBy(0, distance);
-          totalHeight += distance;
-          if (totalHeight >= scrollHeight) {
-            clearInterval(timer);
-            resolve();
-          }
-        }, 100);
-      });
-    });
+  const scrollSelectedHeight = async (scrollHeight) => {
+    await page.evaluate((scrollHeight) => {
+      window.scrollBy(0, scrollHeight);
+    }, scrollHeight);
   };
-  // scoll page
-  await scrollPage(page);
 
-  async function waitForPageStabilize(page) {
-    const intervalId = setInterval(async () => {
-      const isStable = await page.evaluate(async () => {
-        // Check if there are any pending network requests
-        const networkPromise = new Promise((resolve) => {
-          window.addEventListener("load", resolve);
-          setTimeout(resolve, 5000);
-        });
-        const pendingRequests = window.performance
-          .getEntriesByType("resource")
-          .filter(
-            (r) => r.initiatorType !== "xmlhttprequest" && !r.transferSize
-          )
-          .map((r) => r.name);
-        if (pendingRequests.length > 0) {
-          return false;
+  function wait(milliseconds) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, milliseconds);
+    });
+  }
+  await scrollSelectedHeight(500);
+  await wait(5000); // waits for 5 seconds
+  await scrollSelectedHeight(500);
+  await wait(5000); // waits for 5 seconds
+  await scrollSelectedHeight(500);
+  await wait(5000); // waits for 5 seconds
+
+  async function waitUntil(condition, timeout = 30000, interval = 1000) {
+    return new Promise(async (resolve, reject) => {
+      const endTime =
+        timeout === 0 ? Date.now() + 300000 : Date.now() + timeout;
+
+      const checkCondition = async () => {
+        const result = await condition();
+        if (result) {
+          resolve();
+        } else if (Date.now() < endTime) {
+          setTimeout(checkCondition, interval);
+        } else {
+          reject(new Error("Timeout exceeded while waiting for condition"));
         }
+      };
 
-        // Check if the page has stopped resizing
-        const resizePromise = new Promise((resolve) => {
-          let lastWidth = window.innerWidth;
-          let lastHeight = window.innerHeight;
-          const checkResize = () => {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            if (width !== lastWidth || height !== lastHeight) {
-              lastWidth = width;
-              lastHeight = height;
-              setTimeout(checkResize, 100);
-            } else {
-              resolve();
-            }
-          };
-          setTimeout(checkResize, 100);
-        });
-
-        // Wait for both promises to resolve
-        await Promise.all([networkPromise, resizePromise]);
-        return true;
-      });
-
-      if (isStable) {
-        clearInterval(intervalId);
-        console.log("loaded");
-      } else {
-        console.log("Page is not stable yet, waiting for a moment...");
-        await page.waitForTimeout(1000);
-      }
-    }, 1000);
+      await checkCondition();
+    });
   }
 
-  // Wait until at least four elements matching the XPath expression are visible on the page
-  await page.waitForFunction(
-    () => {
-      const elements = document.evaluate(
-        '//div[@role="article"]',
-        document,
-        null,
-        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-        null
+  async function waitForDivCount(page) {
+    await waitUntil(async () => {
+      const divCount = await page.$$eval(
+        'div[aria-posinset][role="article"]',
+        (divs) => divs.length
       );
-      let visibleElementCount = 0;
-      for (let i = 0; i < elements.snapshotLength; i++) {
-        if (elements.snapshotItem(i).offsetParent !== null) {
-          visibleElementCount++;
-        }
-      }
-      return visibleElementCount >= 7;
-    },
-    { timeout: 0 }
-  );
+      console.log(`divCount: ${divCount}`);
+      return divCount >= 4;
+    }, 0);
+    console.log(
+      'There are at least 4 div elements with attributes aria-posinset and role="article"'
+    );
+  }
+  await waitForDivCount(page)
+    .then(() => {
+      console.log("waitForDivCount function completed.");
+    })
+    .catch((err) => {
+      console.error(err);
+    });
 
-  console.log("At least 4 elements are visible.");
+  // Wait for a few seconds to give the function enough time to complete
+  setTimeout(() => {
+    console.log("Code after waitForDivCount function");
+  }, 5000);
 
-  // Take a screenshot of the full page
   const screenshotBuffer = await page.screenshot({ fullPage: true });
 
   // Set the response headers
