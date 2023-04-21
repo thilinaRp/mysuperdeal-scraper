@@ -10,6 +10,47 @@ app.get("/", async (req, res) => {
   res.send("root working");
 });
 
+app.get("/getpagepreview/:pageId", async (req, res) => {
+  const browser = await puppeteer.launch({
+    executablePath:
+      process.env.NODE_ENV === "production"
+        ? process.env.PUPPETEER_EXECUTABLE_PATH
+        : puppeteer.executablePath(),
+  });
+
+  const page = await browser.newPage();
+  await page.setRequestInterception(true);
+  page.on("request", (request) => {
+    if (
+      request.resourceType() === "image" ||
+      // request.resourceType() === "stylesheet"
+      request.resourceType() === "font"
+    ) {
+      request.abort();
+    } else {
+      request.continue();
+    }
+  });
+
+  await page.goto(`https://facebook.com/${req.params.pagename}`, {
+    waitUntil: "networkidle2",
+    timeout: 0,
+  });
+
+  const screenshotBuffer = await page.screenshot({ fullPage: true });
+
+  // Set the response headers
+  res.set({
+    "Content-Type": "image/png",
+    "Content-Length": screenshotBuffer.length,
+  });
+
+  // Send the screenshot as a response
+  res.send(screenshotBuffer);
+
+  await browser.close();
+});
+
 app.get("/getposts/:pageId", async (req, res) => {
   const browser = await puppeteer.launch({
     executablePath:
