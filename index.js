@@ -1,6 +1,6 @@
 const express = require("express");
 const puppeteer = require("puppeteer");
-const randUserAgent = require("rand-user-agent");
+import randUserAgent from "rand-user-agent";
 require("dotenv").config();
 const cheerio = require("cheerio");
 const agent = randUserAgent("desktop");
