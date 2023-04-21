@@ -1,9 +1,9 @@
 import express from "express";
-import puppeteer from "puppeteer";
-// import randUserAgent from "rand-user-agent";
+// import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
 // require("dotenv").config();
 // const cheerio = require("cheerio");
-// const agent = randUserAgent("desktop");
 const app = express();
 const port = 8080;
 
@@ -12,32 +12,35 @@ app.get("/", async (req, res) => {
 });
 
 app.get("/getpagepreview/:pageId", async (req, res) => {
-  const args = [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-infobars",
-    "--window-position=0,0",
-    "--ignore-certifcate-errors",
-    "--ignore-certifcate-errors-spki-list",
-    '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"',
-  ];
+  puppeteer.use(StealthPlugin());
+  // const args = [
+  //   "--no-sandbox",
+  //   "--disable-setuid-sandbox",
+  //   "--disable-infobars",
+  //   "--window-position=0,0",
+  //   "--ignore-certifcate-errors",
+  //   "--ignore-certifcate-errors-spki-list",
+  //   '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"',
+  // ];
 
   const options = {
-    args,
+    // args,
     headless: true,
     ignoreHTTPSErrors: true,
     userDataDir: "./tmp",
+    defaultViewport: null,
     executablePath:
       process.env.NODE_ENV === "production"
         ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : puppeteer.executablePath(),
+        : _executablePath(),
   };
 
   const browser = await puppeteer.launch(options);
+
+  const page = await browser.newPage();
   const preloadFile = fs.readFileSync("./preload.js", "utf8");
   await page.evaluateOnNewDocument(preloadFile);
-  const page = await browser.newPage();
-  // await page.setUserAgent(agent);
+
   await page.setRequestInterception(true);
 
   page.on("request", (request) => {
@@ -72,11 +75,11 @@ app.get("/getpagepreview/:pageId", async (req, res) => {
 });
 
 app.get("/getposts/:pageId", async (req, res) => {
-  const browser = await puppeteer.launch({
+  const browser = await launch({
     executablePath:
       process.env.NODE_ENV === "production"
         ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : puppeteer.executablePath(),
+        : _executablePath(),
   });
 
   const page = await browser.newPage();
