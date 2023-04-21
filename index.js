@@ -1,8 +1,9 @@
 const express = require("express");
 const puppeteer = require("puppeteer");
+const randUserAgent = require("rand-user-agent");
 require("dotenv").config();
 const cheerio = require("cheerio");
-
+const agent = randUserAgent("desktop");
 const app = express();
 const port = 8080;
 
@@ -19,7 +20,10 @@ app.get("/getpagepreview/:pageId", async (req, res) => {
   });
 
   const page = await browser.newPage();
+  await page.setUserAgent(agent);
   await page.setRequestInterception(true);
+  console.log("agent", agent);
+
   page.on("request", (request) => {
     if (
       request.resourceType() === "image" ||
