@@ -1,16 +1,10 @@
 const express = require("express");
 const puppeteer = require("puppeteer");
-// const useProxy = require("puppeteer-page-proxy");
 require("dotenv").config();
 const cheerio = require("cheerio");
 
 const app = express();
 const port = 8080;
-
-PROXY_USERNAME = "wilvfdpr";
-PROXY_PASSWORD = "688cxjbfgyai";
-PROXY_SERVER = "2.56.119.93";
-PROXY_SERVER_PORT = "5074";
 
 app.get("/", async (req, res) => {
   res.send("root working");
@@ -18,8 +12,6 @@ app.get("/", async (req, res) => {
 
 app.get("/getposts/:pageId", async (req, res) => {
   const browser = await puppeteer.launch({
-    ignoreHTTPSErrors: true,
-    args: [`--proxy-server=http://${PROXY_SERVER}:${PROXY_SERVER_PORT}`],
     executablePath:
       process.env.NODE_ENV === "production"
         ? process.env.PUPPETEER_EXECUTABLE_PATH
@@ -27,28 +19,7 @@ app.get("/getposts/:pageId", async (req, res) => {
   });
 
   const page = await browser.newPage();
-  await page.authenticate({
-    username: PROXY_USERNAME,
-    password: PROXY_PASSWORD,
-  });
-  await page.setRequestInterception(true);
-  page.on("request", (request) => {
-    if (
-      // request.resourceType() === "image" ||
-      // request.resourceType() === "stylesheet"
-      request.resourceType() === "font"
-    ) {
-      request.abort();
-    } else {
-      request.continue();
-    }
-  });
-
-  // await page.setUserAgent(
-  //   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36"
-  // );
-
-  await page.goto(`https://m.facebook.com/${req.params.pageId}/`, {
+  await page.goto(`https://facebook.com/${req.params.pagename}`, {
     waitUntil: "networkidle2",
     timeout: 0,
   });
@@ -57,10 +28,9 @@ app.get("/getposts/:pageId", async (req, res) => {
     await page.evaluate(async () => {
       await new Promise((resolve, reject) => {
         let totalHeight = 0;
-        const distance = 100;
+        const distance = 500;
         const timer = setInterval(() => {
           const scrollHeight = document.body.scrollHeight;
-          console.log("scrollHeight => ", scrollHeight);
           window.scrollBy(0, distance);
           totalHeight += distance;
           if (totalHeight >= scrollHeight) {
@@ -74,109 +44,93 @@ app.get("/getposts/:pageId", async (req, res) => {
   // scoll page
   await scrollPage(page);
 
-  const screenshot = await page.screenshot();
-  // wait for first post to view
+  async function waitForPageStabilize(page) {
+    const intervalId = setInterval(async () => {
+      const isStable = await page.evaluate(async () => {
+        // Check if there are any pending network requests
+        const networkPromise = new Promise((resolve) => {
+          window.addEventListener("load", resolve);
+          setTimeout(resolve, 5000);
+        });
+        const pendingRequests = window.performance
+          .getEntriesByType("resource")
+          .filter(
+            (r) => r.initiatorType !== "xmlhttprequest" && !r.transferSize
+          )
+          .map((r) => r.name);
+        if (pendingRequests.length > 0) {
+          return false;
+        }
 
-  // await page
-  //   .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]')
-  //   .then(() => console.log("XPath found!"))
-  //   .catch(async (error) => {
-  //     console.log("first time fail error msg=> ", error);
-  //     await scrollPage(page);
-  //   })
-  //   .finally(() => {});
+        // Check if the page has stopped resizing
+        const resizePromise = new Promise((resolve) => {
+          let lastWidth = window.innerWidth;
+          let lastHeight = window.innerHeight;
+          const checkResize = () => {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            if (width !== lastWidth || height !== lastHeight) {
+              lastWidth = width;
+              lastHeight = height;
+              setTimeout(checkResize, 100);
+            } else {
+              resolve();
+            }
+          };
+          setTimeout(checkResize, 100);
+        });
 
-  // await page
-  //   .waitForXPath('//*[@id="pages_msite_body_contents"]/div/div[4]/div[2]')
-  //   .then(() => console.log("XPath found!"))
-  //   .catch(async (error) => {
-  //     console.log("second time fail error msg=> ", error);
-  //   })
-  //   .finally(() => {});
-  // get posts html list
-  // const posts = await page.evaluate(() => {
-  //   const postList = document.querySelectorAll(
-  //     '#pages_msite_body_contents > div > div:nth-child(4) > div[style="padding-top:8px"]'
-  //   );
-  //   const postlistarray = [];
-  //   postList.forEach((el) => {
-  //     postlistarray.push(el.innerHTML);
-  //   });
+        // Wait for both promises to resolve
+        await Promise.all([networkPromise, resizePromise]);
+        return true;
+      });
 
-  //   return postlistarray;
-  // });
-  // const postObjectArray = posts.map((post) => {
-  //   const $ = cheerio.load(post);
-  //   const postObject = JSON.parse($("article").attr("data-ft"));
-  //   const postId = postObject.mf_story_key;
-  //   const postImgId = postObject.photo_id;
-  //   const publishDateSecond =
-  //     postObject.page_insights[`${postObject.page_id}`].post_context
-  //       .publish_time;
-
-  //   const postDescription = $(".story_body_container > div > div").html();
-  //   // const desStyleRemove = cheerio.load(postDescription);
-  //   // desStyleRemove("style").remove();
-  //   // desStyleRemove("*[style]").removeAttr("style");
-  //   // desStyleRemove("*[class]").removeAttr("class");
-  //   // desStyleRemove("span").removeAttr();
-  //   // const description = desStyleRemove("body").html();
-  //   const postImageLow = $(".story_body_container div a img").eq(1).attr("src");
-  //   const postUrl = $(".story_body_container div div a").eq(2).attr("href");
-
-  //   const postDataObject = {
-  //     postId: postId,
-  //     imgId: postImgId,
-  //     publishDate: publishDateSecond,
-  //     description: postDescription,
-  //     lowQImgUrl: postImageLow,
-  //     postUrl: postUrl,
-  //   };
-  //   return postDataObject;
-  // });
-  // res.send(postObjectArray);
-  res.set("Content-Type", "image/png");
-  res.send(screenshot);
-  await browser.close();
-});
-
-app.get("/getpostimage/:posturl", async (req, res) => {
-  const browser = await puppeteer.launch({
-    args: [
-      "--disable-setuid-sandbox",
-      "--no-sandbox",
-      "--single-process",
-      "--no-zygote",
-    ],
-    defaultViewport: null,
-    executablePath:
-      process.env.NODE_ENV === "production"
-        ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : puppeteer.executablePath(),
-  });
-  try {
-    const page = await browser.newPage();
-
-    await page.goto(`https://web.facebook.com${req.params.posturl}`, {
-      waitUntil: "networkidle2",
-      timeout: 0,
-    });
-    await page.waitForSelector(
-      ".uiScaledImageContainer img.scaledImageFitWidth"
-    );
-
-    const imageUrl = await page.evaluate(() => {
-      const img = document.querySelectorAll(
-        ".uiScaledImageContainer img.scaledImageFitWidth"
-      )[1];
-      return img ? img.src : null;
-    });
-    res.send(imageUrl);
-  } catch (e) {
-    res.send(`process error: ${e}`);
-  } finally {
-    await browser.close();
+      if (isStable) {
+        clearInterval(intervalId);
+        console.log("loaded");
+      } else {
+        console.log("Page is not stable yet, waiting for a moment...");
+        await page.waitForTimeout(1000);
+      }
+    }, 1000);
   }
+
+  // Wait until at least four elements matching the XPath expression are visible on the page
+  await page.waitForFunction(
+    () => {
+      const elements = document.evaluate(
+        '//div[@role="article"]',
+        document,
+        null,
+        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+        null
+      );
+      let visibleElementCount = 0;
+      for (let i = 0; i < elements.snapshotLength; i++) {
+        if (elements.snapshotItem(i).offsetParent !== null) {
+          visibleElementCount++;
+        }
+      }
+      return visibleElementCount >= 7;
+    },
+    { timeout: 0 }
+  );
+
+  console.log("At least 4 elements are visible.");
+
+  // Take a screenshot of the full page
+  const screenshotBuffer = await page.screenshot({ fullPage: true });
+
+  // Set the response headers
+  res.set({
+    "Content-Type": "image/png",
+    "Content-Length": screenshotBuffer.length,
+  });
+
+  // Send the screenshot as a response
+  res.send(screenshotBuffer);
+
+  await browser.close();
 });
 
 app.listen(port, () => {
