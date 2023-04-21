@@ -36,8 +36,6 @@ app.get("/getposts/:pageId", async (req, res) => {
     waitUntil: "networkidle2",
     timeout: 0,
   });
-  // Set network conditions to Slow 3G
-  await page.emulateNetworkConditions(slow3G);
 
   const scrollSelectedHeight = async (scrollHeight) => {
     await page.evaluate((scrollHeight) => {
